@@ -268,9 +268,16 @@
     I.prototype.load_cli_data = function(bin) {
         var iinfo = this.image_info;
         var h     = iinfo.header,
+            offset, cli_header, size;
+
+        this.load_cli_header(bin);
+        this.load_metadata(bin);
+    };
+    I.prototype.load_cli_header = function(bin) {
+        var iinfo = this.image_info;
+        var h     = iinfo.header,
             offset, cli_header;
 
-        // load cli header
         offset = this.cli_rva_image_map(bin, h.datadir.cli_header.rva);
         if(offset == 0) {
             throw new InvalidImage();
@@ -312,7 +319,84 @@
         cli_header.ridmap          = readDirEntry();
         cli_header.debug_map       = readDirEntry();
         cli_header.ip_map          = readDirEntry();
+    };
+    I.prototype.load_metadata = function(bin) {
+        var iinfo = this.image_info;
+        var cli_header = iinfo.cli_header,
+            offset, size, metadata_offset, str_len,
+            streams, i, type, o;
 
+        // metadata ptr
+        offset = this.cli_rva_image_map(bin, cli_header.metadata.rva);
+        if(offset == 0) {
+            throw new InvalidImage();
+        }
+        size = cli_header.metadata.size;
+        if(offset + size > bin.length) {
+            throw new InvalidImage(offset);
+        }
+        this.raw_metadata = { data: offset, size: offset + size };
+        metadata_offset = offset;
+
+        if( bin.slice(offset, offset+4).toString() !== "BSJB" ) {
+            throw new InvalidImage(offset);
+        }
+        offset += 4;
+
+        this.version_major = bin.readUInt16(offset);
+        offset += 2;
+        this.version_minor = bin.readUInt16(offset);
+        offset += 6;
+
+        str_len = bin.readUInt32(offset);
+        offset += 4;
+        this.version = bin.slice(offset, offset + str_len).toString();
+        offset += str_len;
+        if( (offset - metadata_offset) % 4 ) {
+            offset += 4 - ( (offset - metadata_offset) % 4 );
+        }
+        offset += 2; // skip over flags
+
+        streams = bin.readUInt16(offset);
+        offset += 2;
+
+        this.heap_tables  = {};
+        this.heap_strings = {};
+        this.heap_us      = {};
+        this.heap_blob    = {};
+        this.heap_guid    = {};
+
+        for(i = 0; i < streams; i++) {
+            str_len = 8; // max len
+            while( str_len > 0 && bin[ offset + str_len - 1 ] === 0 ) {
+                str_len--;
+            }
+
+            type = bin.slice(offset + 8, offset + 8 +  str_len).toString();
+            o = bin.readUInt32(offset);
+            offset += 4;
+            size = bin.readUInt32(offset);
+            offset += 4;
+            offset += str_len + 1 /* trailing NUL */;
+            switch(type) {
+            case "#~":
+                this.heap_tables.data = metadata_offset + o;
+                this.heap_tables.size = size;
+                break;
+            case "#Strings":
+                this.heap_strings.data = metadata_offset + o;
+                this.heap_strings.size = size;
+                break;
+            case "#US":
+
+            case "#Blob":
+            case "#GUID":
+            case "#-":
+            default:
+            }
+            offset += str_len;
+        }
+        // tables
     };
     I.prototype.cli_rva_image_map = function(bin, addr) {
         var iinfo  = this.image_info;
