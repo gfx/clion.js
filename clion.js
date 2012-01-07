@@ -41,27 +41,37 @@
        this.method     = {};
        this.property   = {};
     };
+
+    I.prototype.load_file = function(name) {
+        var bin  = require('fs').readFileSync(name);
+        this.load_pe_data(bin);
+    };
     I.prototype.load_pe_data = function(bin) {
-        var msdos  = this.load_msdos_header(bin),
-            h      = {}; // .NET header
-        var offset = msdos.pe_offset;
+        var msdos, h, offset;
+
+        this.raw_data = bin;
+
+        msdos  = this.load_msdos_header();
+        h      = {}; // .NET header
+        offset = msdos.pe_offset;
 
         this.image_info.header = h;
 
-        offset = this.load_header(bin, h, offset);
+        offset = this.load_header(h, offset);
         if(offset < 0) {
             throw new InvalidImage(offset);
         };
 
-        offset = this.load_section_tables(bin, offset);
+        offset = this.load_section_tables(offset);
 
-        this.load_cli_data(bin);
+        this.load_cli_data();
 
         d(this.image_info);
         d(h);
         d(this);
     };
-    I.prototype.load_msdos_header = function(bin) {
+    I.prototype.load_msdos_header = function() {
+        var bin   = this.raw_data;
         var msdos = {},
             offset = 0;
         if(bin.slice(0, 2).toString() !== "MZ") {
@@ -86,7 +96,8 @@
         msdos.msdos_header2 = bin.slice(offset, offset+64);
         return msdos;
     };
-    I.prototype.load_header = function(bin, h, offset) {
+    I.prototype.load_header = function(h, offset) {
+        var bin = this.raw_data;
         var coff, pe, nt, datadir;
 
         h.pesig              = bin.slice(offset, offset+4);
@@ -229,7 +240,8 @@
 
         return offset;
     };
-    I.prototype.load_section_tables = function(bin, offset) {
+    I.prototype.load_section_tables = function(offset) {
+        var bin   = this.raw_data;
         var iinfo = this.image_info;
         var top   = iinfo.header.coff.sections,
             i, t, namelen;
@@ -266,20 +278,17 @@
             offset += 4;
         }
     };
-    I.prototype.load_cli_data = function(bin) {
-        var iinfo = this.image_info;
-        var h     = iinfo.header,
-            offset, cli_header, size;
-
-        this.load_cli_header(bin);
-        this.load_metadata(bin);
+    I.prototype.load_cli_data = function() {
+        this.load_cli_header();
+        this.load_metadata();
     };
-    I.prototype.load_cli_header = function(bin) {
+    I.prototype.load_cli_header = function() {
+        var bin   = this.raw_data;
         var iinfo = this.image_info;
         var h     = iinfo.header,
             offset, cli_header;
 
-        offset = this.cli_rva_image_map(bin, h.datadir.cli_header.rva);
+        offset = this.cli_rva_image_map(h.datadir.cli_header.rva);
         if(offset == 0) {
             throw new InvalidImage();
         }
@@ -321,14 +330,15 @@
         cli_header.debug_map       = readDirEntry();
         cli_header.ip_map          = readDirEntry();
     };
-    I.prototype.load_metadata = function(bin) {
+    I.prototype.load_metadata = function() {
+        var bin   = this.raw_data;
         var iinfo = this.image_info;
         var cli_header = iinfo.cli_header,
             offset, size, metadata_offset, str_len,
             streams, i, pad, type, o;
 
         // metadata ptr
-        offset = this.cli_rva_image_map(bin, cli_header.metadata.rva);
+        offset = this.cli_rva_image_map(cli_header.metadata.rva);
         if(offset == 0) {
             throw new InvalidImage();
         }
@@ -425,9 +435,12 @@
                           guid[13] + guid[14] + guid[15];
         })(bin, this.heap_guid);
 
-        // tables
+        this.load_tables();
     };
-    I.prototype.cli_rva_image_map = function(bin, addr) {
+    I.prototype.load_tables = function() { // from the "#~" stream
+
+    };
+    I.prototype.cli_rva_image_map = function(addr) {
         var iinfo  = this.image_info;
         var top    = iinfo.section_count,
             tables = iinfo.section_tables,
