@@ -15,6 +15,7 @@
 
     var p = console.log;
     var d = DEBUG ? console.log : function() { };
+    var w = console.log;
 
     // see:
     // mono_image_load_pe_data()@mono/metadata/image.c
@@ -324,7 +325,7 @@
         var iinfo = this.image_info;
         var cli_header = iinfo.cli_header,
             offset, size, metadata_offset, str_len,
-            streams, i, type, o;
+            streams, i, pad, type, o;
 
         // metadata ptr
         offset = this.cli_rva_image_map(bin, cli_header.metadata.rva);
@@ -352,50 +353,78 @@
         offset += 4;
         this.version = bin.slice(offset, offset + str_len).toString();
         offset += str_len;
-        if( (offset - metadata_offset) % 4 ) {
-            offset += 4 - ( (offset - metadata_offset) % 4 );
+        pad = offset - metadata_offset;
+        if( pad  % 4 ) {
+            offset += 4 - (pad  % 4);
         }
         offset += 2; // skip over flags
 
         streams = bin.readUInt16(offset);
         offset += 2;
 
-        this.heap_tables  = {};
-        this.heap_strings = {};
-        this.heap_us      = {};
-        this.heap_blob    = {};
-        this.heap_guid    = {};
-
         for(i = 0; i < streams; i++) {
-            str_len = 8; // max len
-            while( str_len > 0 && bin[ offset + str_len - 1 ] === 0 ) {
-                str_len--;
-            }
+            o = {};
+            o.data = metadata_offset + bin.readUInt32(offset);
+            offset += 4;
+            o.size = bin.readUInt32(offset); // size of heap
+            offset += 4;
 
-            type = bin.slice(offset + 8, offset + 8 +  str_len).toString();
-            o = bin.readUInt32(offset);
-            offset += 4;
-            size = bin.readUInt32(offset);
-            offset += 4;
+            str_len = 0; // length of nul terminated str
+            while( bin[ offset + str_len ] !== 0 ) {
+                if(++str_len > 8) { // max len
+                    throw new InvalidImage();
+                }
+            }
+            type = bin.slice(offset, offset +  str_len).toString();
             offset += str_len + 1 /* trailing NUL */;
+
             switch(type) {
             case "#~":
-                this.heap_tables.data = metadata_offset + o;
-                this.heap_tables.size = size;
+                this.heap_tables = o;
                 break;
             case "#Strings":
-                this.heap_strings.data = metadata_offset + o;
-                this.heap_strings.size = size;
+                this.heap_strings = o;
                 break;
             case "#US":
-
+                this.heap_us = o;
+                break;
             case "#Blob":
+                this.heap_blob = o;
+                break;
             case "#GUID":
+                this.heap_guid = o;
+                break;
             case "#-":
+                this.heap_tables = o;
+                this.uncompressed_metadata = true;
+                d("Assembly has the non standard metadata heap #-.");
+                break;
             default:
+                throw new Error("Unknown heap type: "
+                                + JSON.stringify(type));
+                break;
             }
-            offset += str_len;
+
+            pad = offset - this.raw_metadata.data;
+            if(pad % 4) {
+                offset += 4 - (pad % 4);
+            }
         }
+        this.guid = (function(bin, heap) {
+            var guid = [],
+                i, x;
+            for(i = 0; i < heap.size; i++) {
+                x = bin[ heap.data + i ].toString(16);
+                guid.push( x.length === 1 ? '0' + x : x);
+            }
+            return guid[3] + guid[2] + guid[1] + guid[0] +
+                    '-' + guid[5] + guid[4] +
+                    '-' + guid[7] + guid[6] +
+                    '-' + guid[8] + guid[9] +
+                    '-' + guid[10] + guid[11] + guid[12] +
+                          guid[13] + guid[14] + guid[15];
+        })(bin, this.heap_guid);
+
         // tables
     };
     I.prototype.cli_rva_image_map = function(bin, addr) {
