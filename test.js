@@ -7,7 +7,7 @@ var Clion = require('./clion').Clion;
 
 var img = new Clion.Image;
 
-img.load_image( fs.readFileSync("./hello.exe") );
+img.load_pe_data( fs.readFileSync("./hello.exe") );
 
 
 
