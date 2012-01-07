@@ -33,19 +33,24 @@
     //          mono_image_load_names()
     //          load_modules()
     var I = function Clion_Image(name) {
-       this.name       = name;
+       this.image_name = name;
        this.image_info = {};
        this.typespec   = {};
        this.memberref  = {};
        this.helper     = {};
        this.method     = {};
        this.property   = {};
+
+       if(name) {
+           this.load_file(name);
+       }
     };
 
-    I.prototype.load_file = function(name) {
-        var bin  = require('fs').readFileSync(name);
+    I.prototype.load_file = function(file) {
+        var bin  = require('fs').readFileSync(file);
         this.load_pe_data(bin);
     };
+    // load & verify the executable binary
     I.prototype.load_pe_data = function(bin) {
         var msdos, h, offset;
 
@@ -66,9 +71,8 @@
 
         this.load_cli_data();
 
-        d(this.image_info);
-        d(h);
-        d(this);
+        this.load_names();
+        this.load_modules();
     };
     I.prototype.load_msdos_header = function() {
         var bin   = this.raw_data;
@@ -438,7 +442,64 @@
         this.load_tables();
     };
     I.prototype.load_tables = function() { // from the "#~" stream
+        var bin         = this.raw_data;
+        var heap_tables = this.heap_tables.data;
+        var offset, heap_sizes,
+            valid_mask_hi,  valid_mask_lo,  // 64 bits
+            sorted_mask_hi, sorted_mask_lo, // 64 bits
+            rows, table, use_lo, flag,
+            valid = 0;
 
+        heap_sizes = bin[heap_tables + 6];
+        this.idx_string_wide = !!( heap_sizes & 0x01 );
+        this.idx_guid_wide   = !!( heap_sizes & 0x02 );
+        this.idx_blob_wide   = !!( heap_sizes & 0x04 );
+
+        offset = heap_tables + 8;
+        valid_mask_hi  = bin.readUInt32(offset);
+        offset += 4;
+        valid_mask_lo  = bin.readUInt32(offset);
+        offset += 4;
+        sorted_mask_hi = bin.readUInt32(offset);
+        offset += 4;
+        sorted_mask_lo = bin.readUInt32(offset);
+        offset += 4;
+
+        rows = offset;
+
+        var TABLE_LAST = 0x2c;
+        this.tables = new Array(TABLE_LAST + 1);
+
+        for(table = 0; table < 64; table++) {
+            // flags64 : [ hi 32bits ][ lo 32bits ]
+            use_lo = ( table <= 32 );
+            if(use_lo) {
+                flag = ( (valid_mask_lo & (1 << table)) === 0 );
+            }
+            else {
+                flag = ( (valid_mask_hi & (1 << (table >> 1))) == 0 );
+            }
+            if(flag) {
+                if( table > TABLE_LAST ) {
+                    continue;
+                }
+                this.tables[table] = { rows: 0 };
+                continue;
+            }
+            if( table > TABLE_LAST ) {
+                w("bits in valid must be zero above 0x2d");
+            }
+            else {
+                this.tables[table] = { rows:  bin.readUInt32(rows) };
+                rows += 4;
+            }
+            valid++;
+        }
+        this.tables_base = (heap_tables + 24) + (4 * valid);
+        if(this.tables_base !== rows) {
+            throw new InvalidImage(rows);
+        }
+        this.metadata_compute_table_bases();
     };
     I.prototype.cli_rva_image_map = function(addr) {
         var iinfo  = this.image_info;
@@ -455,11 +516,35 @@
         }
         return 0;
     };
+    I.prototype.load_names = function() {
+        // TODO
+    };
+    I.prototype.load_modules = function() {
+    };
+    // see mono_metadata_compute_table_bases()@mono/metadata/metadata.c
+    I.prototype.metadata_compute_table_bases = function() {
+        var i, table, base;
+        base = this.tables_base;
+        for(i = 0; i < this.tables.length; i++) {
+            table = this.tables[i];
+            if(table.rows === 0) {
+                continue;
+            }
+
+            table.row_size = this.metaata_compute_size(i, table);
+            table.base     = base;
+            base += table.rows * table.row_size;
+        }
+    };
+    I.prototype.metadata_compute_table_bases = function() {
+        // TODO: port the 300-lines function
+        return 1;
+    };
 
 
     var M = function Clion_Module(name) {
-        this.name = name;
-        this.iseq = [ ];
+        this.module_name = name;
+        this.iseq        = [ ];
     };
     M.prototype.initialize = function(vm, args) {
         var i;

@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 
-var fs = require("fs");
-
 var Clion = require('./clion').Clion;
 
-var img = new Clion.Image;
+var img = new Clion.Image('./hello.exe');
 
-img.load_pe_data( fs.readFileSync("./hello.exe") );
-
+console.log('image_info:', img.image_info);
+console.log('image:', img);
 
 
