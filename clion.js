@@ -5,8 +5,229 @@
     "use strict";
     var DEBUG = true;
 
-    var __ii = 0; // instruction identifier
-    var ldstr = ++__ii;
+    var __c = -1; // enum counter
+    // data types in the metadata tables
+    var MT_END = ++__c,
+
+        // sized elements
+        MT_UINT32 = ++__c,
+        MT_UINT16 = ++__c,
+        MT_UINT8 = ++__c,
+
+        // index into heaps, tables, properties
+        MT_BLOB_IDX = ++__c,
+        MT_STRING_IDX = ++__c,
+        MT_GUID_IDX = ++__c,
+        MT_TABLE_IDX = ++__c,
+        MT_CONST_IDX = ++__c,   // HashConstant:Parent
+        MT_HASCAT_IDX = ++__c,  // HasCustomAttribute
+        MT_CAT_IDX = ++__c,     // CustomAttributeType
+        MT_HASDEC_IDX = ++__c,  // HasDeclSecurity
+        MT_IMPL_IDX = ++__c,    // Implementation
+        MT_HFM_IDX = ++__c,     // HasFieldMarshal
+        MT_MF_IDX = ++__c,      // MemberFormat
+        MT_TDOR_IDX = ++__c,    // TypeDefOrRef
+        MT_MRP_IDX = ++__c,     // MemberRefParent
+        MT_MDOR_IDX = ++__c,    // MethodDefOrRef
+        MT_HS_IDX = ++__c,      // HasSemantic
+        MT_RS_IDX = ++__c       // ResolutionScope
+    ;
+
+    var TableSchema = {
+        ASSEMBLY: {
+            HashId: MT_UINT32,
+            Major: MT_UINT16,
+            Minor: MT_UINT16,
+            BuildNumber: MT_UINT16,
+            RevisionNumber: MT_UINT16,
+            Flags: MT_UINT32,
+            PublicKey: MT_BLOB_IDX,
+            Name: MT_STRING_IDX,
+            Culture: MT_STRING_IDX,
+        },
+        ASSEMBLYOS: {
+            OSPlatformID: MT_UINT32,
+            OSMajor: MT_UINT32,
+            OSMinor: MT_UINT32,
+        },
+        ASSEMBLYPROC: {
+            Processor: MT_UINT32,
+        },
+        ASSEMBLYREF: {
+            Major: MT_UINT16,
+            Minor: MT_UINT16,
+            Build: MT_UINT16,
+            Revision: MT_UINT16,
+            Flags: MT_UINT32,
+            PublicKeyOrToken: MT_BLOB_IDX,
+            Name: MT_STRING_IDX,
+            Culture: MT_STRING_IDX,
+            HashValue: MT_BLOB_IDX,
+        },
+        ASSEMBLYREFOS: {
+            OSPlatformID: MT_UINT32,
+            OSMajorVersion: MT_UINT32,
+            OSMinorVersion: MT_UINT32,
+        },
+        ASSEMBLYREFPROC: {
+            Processor: MT_UINT32,
+        },
+        CLASS_LAYOUT: {
+            PackingSize: MT_UINT16,
+            ClassSize: MT_UINT32,
+        },
+        CONSTANT: {
+            Type: MT_UINT8,
+            PaddingZero: MT_UINT8,
+            Parent: MT_CONST_IDX,
+            Value: MT_BLOB_IDX,
+        },
+        CUSTOM_ATTR: {
+            Parent: MT_HASCAT_IDX,
+            Type: MT_CAT_IDX,
+            Value: MT_BLOB_IDX,
+        },
+        DECL_SEC: {
+            Action: MT_UINT16,
+            Parent: MT_HASDEC_IDX,
+            PermissionSet: MT_BLOB_IDX,
+        },
+        EVENTMAP: {
+        },
+        EVENT: {
+            Name: MT_STRING_IDX,
+            EventType: MT_TDOR_IDX,
+        },
+        EVENT_POINTER: {
+            Event: MT_TABLE_IDX,
+        },
+        EXPORTED_TYPE: {
+            Flags: MT_UINT32,
+            TypeDefId: MT_TABLE_IDX,
+            TypeName: MT_STRING_IDX,
+            TypeNameSpace: MT_STRING_IDX,
+            Implementation: MT_IMPL_IDX,
+        },
+        FIELD: {
+            Flags: MT_UINT16,
+            Name: MT_STRING_IDX,
+            Signature: MT_BLOB_IDX,
+        },
+        FIELD_LAYOUT: {
+            Offset: MT_UINT32,
+        },
+        FIELD_MARSHAL: {
+            Parent: MT_HFM_IDX,
+            NativeType: MT_BLOB_IDX,
+        },
+        FIELD_RVA: {
+            RVA: MT_UINT32,
+        },
+        FIELD_POINTER: {
+            Field: MT_TABLE_IDX,
+        },
+        FILE: {
+            Flags: MT_UINT32,
+            Name: MT_STRING_IDX,
+            Value: MT_BLOB_IDX,
+        },
+        IMPLMAP: {
+            MappingFlag: MT_UINT16,
+            MemberForwarded: MT_MF_IDX,
+            ImportName: MT_STRING_IDX,
+        },
+        IFACEMAP: {
+        },
+        MANIFEST: {
+            Offset: MT_UINT32,
+            Flags: MT_UINT32,
+            Name: MT_STRING_IDX,
+            Implementation: MT_IMPL_IDX,
+        },
+        MEMBERREF: {
+            Class: MT_MRP_IDX,
+            Name: MT_STRING_IDX,
+            Signature: MT_BLOB_IDX,
+        },
+        METHOD: {
+            RVA: MT_UINT32,
+            Name: MT_STRING_IDX,
+            Signature: MT_BLOB_IDX,
+        },
+        METHOD_IMPL: {
+            MethodBody: MT_MDOR_IDX,
+            MethodDeclaration: MT_MDOR_IDX,
+        },
+        METHOD_SEMA: {
+            MethodSemantic: MT_UINT16,
+            Association: MT_HS_IDX,
+        },
+        METHOD_POINTER: {
+            Method: MT_TABLE_IDX,
+        },
+        MODULE: {
+            Generation: MT_UINT16,
+            Name: MT_STRING_IDX,
+            MVID: MT_GUID_IDX,
+            EncID: MT_GUID_IDX,
+            EncBaseID: MT_GUID_IDX,
+        },
+        MODULEREF: {
+            Name: MT_STRING_IDX,
+        },
+        NESTED_CLASS: {
+        },
+        PARAM: {
+            Flags: MT_UINT16,
+            Sequence: MT_UINT16,
+            Name: MT_STRING_IDX,
+        },
+        PARAM_POINTER: {
+            Param: MT_TABLE_IDX,
+        },
+        PROPERTY: {
+            Flags: MT_UINT16,
+            Name: MT_STRING_IDX,
+            Type: MT_BLOB_IDX,
+        },
+        PROPERTY_POINTER: {
+            Property: MT_TABLE_IDX,
+        },
+        PROPERTY_MAP: {
+        },
+        STDALON_SIG: {
+            Signature: MT_BLOB_IDX,
+        },
+        TYPEDEF: {
+            Flags: MT_UINT32,
+            Name: MT_STRING_IDX,
+            Namespace: MT_STRING_IDX,
+            Extends: MT_TDOR_IDX,
+        },
+        TYPEREF: {
+            Name: MT_STRING_IDX,
+            Namespace: MT_STRING_IDX,
+        },
+        TYPESPEC: {
+            Signature: MT_BLOB_IDX,
+        },
+        GENPARAM: {
+            Number: MT_UINT16,
+            Flags: MT_UINT16,
+            Owner: MT_TABLE_IDX,
+            Name: MT_STRING_IDX,
+        },
+        METHOD_SPEC: {
+            Method: MT_MDOR_IDX,
+            Signature: MT_BLOB_IDX,
+        },
+        GEN_CONSTRAINT: {
+            GenericParam: MT_TABLE_IDX,
+            Constraint: MT_TDOR_IDX,
+        },
+        NULL: {
+        },
+    }; // end of TableSchema
 
     var InvalidImage = function InvalidImage(offset) {
         var msg        = offset ? "(offset=" + offset + ")" : "";
