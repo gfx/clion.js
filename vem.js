@@ -42,15 +42,37 @@ for(; i < buffer.length; i++) {
     for(i = 0; i < ops.length; i++) {
         op = ops[i];
         switch(op.name) {
-        case "ldstr":
-            stack.push( eval(op.args) );
+        case "box":
+            // noop
             break;
+
         case "call":
             var m      = op.args.match(/(\w+(?:\.\w+)*::\w+)\((.*)\)/);
             var name   = m[1];
             var argc   = m[2].split(/,/).length;
             var args   = stack.splice( stack.length - argc );
             stack.push( method[name].apply(this, args) );
+            break;
+
+        case "add":
+            var right = stack.pop();
+            var left  = stack.pop();
+            stack.push( (+left) + (+right) );
+            break;
+        case "sub":
+            var right = stack.pop();
+            var left  = stack.pop();
+            stack.push( (+left) - (+right) );
+            break;
+
+        case "ldc":
+            var m = op.args.match(/\w+\s*$/);
+            var v = parseInt(m);
+            stack.push(v);
+            break;
+
+        case "ldstr":
+            stack.push( eval(op.args) );
             break;
 
         case "stloc":
@@ -61,6 +83,7 @@ for(; i < buffer.length; i++) {
             var idx = op.args.match(/\d+/)[0];
             stack.push(registory[idx]);
             break;
+
         case "ret":
             return;
         default: throw Error("Not yet implemented: " + op.name);
