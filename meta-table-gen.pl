@@ -24,7 +24,7 @@ my @table_defs;
 {
     open my $fh, '<', $mono_tabledef;
     while(<$fh>) {
-        if(/MONO_(\w+), \s+ "(\w+)"/xms) {
+        if(/MONO_(\w+), \s+ "(\w*)"/xms) {
             push @table_defs, [ $1, $2 ];
         }
     }

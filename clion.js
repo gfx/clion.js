@@ -33,6 +33,7 @@
         MT_RS_IDX = ++__c       // ResolutionScope
     ;
 
+
     var TableSchema = [
         {
             name: "Module",
@@ -244,17 +245,17 @@
             ],
         },
         {
+            name: "",
+            fields: [
+            ],
+        },
+        {
+            name: "",
+            fields: [
+            ],
+        },
+        {
             name: "Assembly",
-            fields: [
-            ],
-        },
-        {
-            name: "AssemblyProcessor",
-            fields: [
-            ],
-        },
-        {
-            name: "AssemblyOS",
             fields: [
                 ["HashId", MT_UINT32],
                 ["Major", MT_UINT16],
@@ -268,13 +269,13 @@
             ],
         },
         {
-            name: "AssemblyRef",
+            name: "AssemblyProcessor",
             fields: [
                 ["Processor", MT_UINT32],
             ],
         },
         {
-            name: "AssemblyRefProcessor",
+            name: "AssemblyOS",
             fields: [
                 ["OSPlatformID", MT_UINT32],
                 ["OSMajor", MT_UINT32],
@@ -282,7 +283,7 @@
             ],
         },
         {
-            name: "AssemblyRefOS",
+            name: "AssemblyRef",
             fields: [
                 ["Major", MT_UINT16],
                 ["Minor", MT_UINT16],
@@ -296,13 +297,13 @@
             ],
         },
         {
-            name: "File",
+            name: "AssemblyRefProcessor",
             fields: [
                 ["Processor", MT_UINT32],
             ],
         },
         {
-            name: "ExportedType",
+            name: "AssemblyRefOS",
             fields: [
                 ["OSPlatformID", MT_UINT32],
                 ["OSMajorVersion", MT_UINT32],
@@ -310,7 +311,7 @@
             ],
         },
         {
-            name: "ManifestResource",
+            name: "File",
             fields: [
                 ["Flags", MT_UINT32],
                 ["Name", MT_STRING_IDX],
@@ -318,7 +319,7 @@
             ],
         },
         {
-            name: "NestedClass",
+            name: "ExportedType",
             fields: [
                 ["Flags", MT_UINT32],
                 ["TypeDefId", MT_TABLE_IDX],
@@ -328,7 +329,7 @@
             ],
         },
         {
-            name: "GenericParam",
+            name: "ManifestResource",
             fields: [
                 ["Offset", MT_UINT32],
                 ["Flags", MT_UINT32],
@@ -337,17 +338,31 @@
             ],
         },
         {
-            name: "MethodSpec",
+            name: "NestedClass",
             fields: [
             ],
         },
         {
-            name: "GenericParamConstraint",
+            name: "GenericParam",
             fields: [
                 ["Number", MT_UINT16],
                 ["Flags", MT_UINT16],
                 ["Owner", MT_TABLE_IDX],
                 ["Name", MT_STRING_IDX],
+            ],
+        },
+        {
+            name: "MethodSpec",
+            fields: [
+                ["Method", MT_MDOR_IDX],
+                ["Signature", MT_BLOB_IDX],
+            ],
+        },
+        {
+            name: "GenericParamConstraint",
+            fields: [
+                ["GenericParam", MT_TABLE_IDX],
+                ["Constraint", MT_TDOR_IDX],
             ],
         },
     ]; // end of TableSchema
@@ -891,6 +906,23 @@
         // TODO: port the 300-lines function
         return 1;
     };
+    I.prototype.get_table = function(name) {
+        for(var i in this.tables) {
+            var t = this.tables[i];
+            if(t.name === name) {
+                return t;
+            }
+        }
+        throw Error("Invalid table name: " + name);
+    };
+    I.prototype.dis_type = function() {
+        var bin = this.raw_data,
+            t   = this.get_table('TypeDef'),
+            x;
+            p([t]);
+            throw new Error("TODO!");
+    };
+
 
 
     var M = function Clion_Module(name) {
