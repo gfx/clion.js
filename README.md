@@ -1,10 +1,5 @@
 Clion.JS - ECMA-335 virtual machine in JavaScript
 ==================================================
-Clion.JS is a JavaScript implementation of ECMA-335 specification
-(Common Lanugage Infrastructure).
-
-Clion.JS provides only a virtual machine, i.e. not including compilers
-nor the other toolchains.
 
 SYNOPSIS
 =================================================
@@ -14,6 +9,21 @@ SYNOPSIS
 
     var c = new Clion("hello.exe");
     c.run();
+
+DESCRIPTION
+==================================================
+Clion.JS is a JavaScript implementation of ECMA-335 specification
+(Common Lanugage Infrastructure).
+
+Clion.JS provides only a virtual machine, i.e. not including compilers
+nor the other toolchains.
+
+COMPONENTS
+==================================================
+
+* Loader
+* Virtual Machine
+* Object Space
 
 SEE ALSO
 ==================================================
