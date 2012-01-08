@@ -787,7 +787,7 @@
             var guid = [],
                 i, x;
             for(i = 0; i < heap.size; i++) {
-                x = bin[ heap.data + i ].toString(16);
+                x = bin[ heap.data + i ].toString(16).toUpperCase();
                 guid.push( x.length === 1 ? '0' + x : x);
             }
             return guid[3] + guid[2] + guid[1] + guid[0] +
