@@ -12,6 +12,7 @@
     },
     "keywords": [],
     "main": "index",
+    "license": "MIT",
     "repository": "git://github.com/gfx/clion.js",
     "engines": { "node": ">= 0.4.0" }
 }

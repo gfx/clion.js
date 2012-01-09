@@ -30,7 +30,6 @@ file 'dist/clion.js' => [ *SRC_FILES ] do |t|
         '--global', 'Clion',
         '--filename', 'clion.js',
         '--main', 'clion.js',
-        #*t.prerequisites
         'lib'
     ;
 end
