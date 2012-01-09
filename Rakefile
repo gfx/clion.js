@@ -5,7 +5,9 @@ CLEAN.include('dist');
 
 SRC_FILES = Dir.glob("lib/**/*.js");
 
-task :default => ['dist/clion.min.js'];
+task :default => [ 'dist/clion.min.js' ];
+task :gen     => [ 'lib/clion/meta.js' ];
+
 
 desc 'runs the tests';
 task :test => [ :default ] do 
@@ -19,11 +21,17 @@ end
 
 directory 'dist';
 
+file 'lib/clion/meta.js' => [ 'tool/meta.PL' ] do |t|
+    sh 'tool/meta.PL > ' + t.name;
+end
+
 file 'dist/clion.js' => [ *SRC_FILES ] do |t|
     sh './node_modules/browserbuild/bin/browserbuild',
         '--global', 'Clion',
         '--filename', 'clion.js',
-        *t.prerequisites
+        '--main', 'clion.js',
+        #*t.prerequisites
+        'lib'
     ;
 end
 
