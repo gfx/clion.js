@@ -194,7 +194,6 @@ foreach my $pair(@table_defs) {
     say ' ' x 4, '{ // ', $sym;
     {
         say ' ' x 8, sprintf 'name: "%s",', $name;
-        say ' ' x 8, sprintf 'id:    %s,', 'C.' . $sym;
 
         # fields
         say ' ' x 8, 'fields: [';
