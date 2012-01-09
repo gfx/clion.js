@@ -15,6 +15,7 @@ BEGIN {
     $INC{'stdio.ph'}  = __FILE__;
 
     require 'mono/metadata/metadata.ph';
+    require 'mono/metadata/tabledefs.ph';
 }
 
 
@@ -50,7 +51,7 @@ GEN
     my $C = Mouse::Meta::Class->initialize('C');
     my $get_value = sub {
         my($name) = @_;
-        my $f = $C->get_method('MONO_' . $name)->body;
+        my $f = $C->get_method($name)->body;
         if(prototype($f) ~~ '') {
             return scalar eval { $f->() };
         }
@@ -59,8 +60,9 @@ GEN
 
     my @constants =  grep { defined $_->[1] }
                      map  { [ $_, $get_value->($_) ] }
-                     map  { s/^MONO_//r }
-                     grep { /^MONO_/ }  $C->get_method_list();
+                     grep { /\A [A-Z] [A-Z0-9_]* [A-Z0-9] \z/xms }  $C->get_method_list();
+
+    $_->[0] =~ s/^MONO_// for @constants;
 
     my $max_len = max map { length $_->[0] } @constants;
     @constants = sort { # sort by group
