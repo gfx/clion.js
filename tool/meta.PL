@@ -3,7 +3,25 @@ use 5.14.0;
 use strict;
 use warnings FATAL => 'all';
 use autodie;
+use List::Util qw(max);
 use Data::Dumper;
+use Mouse ();
+
+use FindBin qw($Bin);
+use lib "$Bin/../ph";
+BEGIN {
+    package C;
+    $INC{'stdint.ph'} = __FILE__;
+    $INC{'stdio.ph'}  = __FILE__;
+
+    require 'mono/metadata/metadata.ph';
+}
+
+
+my $mono = <~/repo/mono>;
+my $mono_metadata = "$mono/mono/metadata/metadata.c";
+my $mono_tabledef = "$mono/mono/cil/tables.def";
+my $mono_blob     = "$mono/mono/metadata/blob.h"; # MONO_TYPE_* and MONO_TABLE_*
 
 =for comment
 
@@ -23,36 +41,86 @@ print <<HEAD;
 "use strict";
 HEAD
 
-print <<'ENUM';
-var __c = 0;
+print <<'GEN';
+// auto-generated constants
 /** @enum {int} */
-var MetaType = {
-    UINT32: ++__c,
-    UINT16: ++__c,
-    UINT8: ++__c,
+var C = {
+GEN
+{
+    my $C = Mouse::Meta::Class->initialize('C');
+    my $get_value = sub {
+        my($name) = @_;
+        my $f = $C->get_method('MONO_' . $name)->body;
+        if(prototype($f) ~~ '') {
+            return scalar eval { $f->() };
+        }
+        return undef;
+    };
 
-    BLOB_IDX: ++__c,
-    STRING_IDX: ++__c,
-    GUID_IDX: ++__c,
-    TABLE_IDX: ++__c,
-    CONST_IDX: ++__c,   // HashConstant:Parent
-    HASCAT_IDX: ++__c,  // HasCustomAttribute
-    CAT_IDX: ++__c,     // CustomAttributeType
-    HASDEC_IDX: ++__c,  // HasDeclSecurity
-    IMPL_IDX: ++__c,    // Implementation
-    HFM_IDX: ++__c,     // HasFieldMarshal
-    MF_IDX: ++__c,      // MemberFormat
-    TDOR_IDX: ++__c,    // TypeDefOrRef
-    MRP_IDX: ++__c,     // MemberRefParent
-    MDOR_IDX: ++__c,    // MethodDefOrRef
-    HS_IDX: ++__c,      // HasSemantic
-    RS_IDX: ++__c       // ResolutionScope
-};
-ENUM
+    my @constants =  grep { defined $_->[1] }
+                     map  { [ $_, $get_value->($_) ] }
+                     map  { s/^MONO_//r }
+                     grep { /^MONO_/ }  $C->get_method_list();
 
-my $mono = <~/repo/mono>;
-my $mono_metadata = "$mono/mono/metadata/metadata.c";
-my $mono_tabledef = "$mono/mono/cil/tables.def";
+    my $max_len = max map { length $_->[0] } @constants;
+    @constants = sort { # sort by group
+        my($a_group) = split /_/, $a->[0];
+        my($b_group) = split /_/, $b->[0];
+
+        $a_group cmp $b_group || $a->[1] <=> $b->[1];
+    } @constants;
+
+    foreach my $pair(@constants) {
+        my($name, $value) = @{$pair};
+        say sprintf '    %-*s: %s,', $max_len, $name, $value;
+    }
+}
+print <<'GEN';
+}; // constants
+
+GEN
+
+
+sub make_enum {
+    my($name, $init, @syms) = @_;
+
+    printf <<'GEN', $name;
+/** @enum {int} */
+var %s = {
+GEN
+    my $max_len = max map { length } @syms;
+    my $value = $init;
+    foreach my $sym(@syms) {
+        say sprintf '    %-*s: %d,', $max_len, $sym, $value++;
+    }
+    printf <<'GEN', $name;
+}; // end of enum %s
+
+GEN
+}
+
+make_enum('MetaType', 1, qw(
+    UINT32
+    UINT16
+    UINT8
+
+    BLOB_IDX
+    STRING_IDX
+    GUID_IDX
+    TABLE_IDX
+    CONST_IDX
+    HASCAT_IDX
+    CAT_IDX
+    HASDEC_IDX
+    IMPL_IDX
+    HFM_IDX
+    MF_IDX
+    TDOR_IDX
+    MRP_IDX
+    MDOR_IDX
+    HS_IDX
+    RS_IDX
+));
 
 # Table Definitions
 my @table_defs;
