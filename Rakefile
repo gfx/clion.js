@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 require 'rake/clean';
 
-CLEAN.include('clion.min.js');
+CLEAN.include('dist');
 
 SRC_FILES = Dir.glob("lib/**/*.js");
 
-task :default => ['clion.min.js'];
+task :default => ['dist/clion.min.js'];
 
 desc 'runs the tests';
 task :test => [ :default ] do 
@@ -17,7 +17,17 @@ task :installdeps => [ ] do
     sh 'npm', 'install';
 end
 
-file 'clion.min.js' => [*SRC_FILES] do |t|
+directory 'dist';
+
+file 'dist/clion.js' => [ *SRC_FILES ] do |t|
+    sh './node_modules/browserbuild/bin/browserbuild',
+        '--global', 'Clion',
+        '--filename', 'clion.js',
+        *t.prerequisites
+    ;
+end
+
+file 'dist/clion.min.js' => [ 'dist/clion.js' ] do |t|
     opts = [ ];
     t.prerequisites.map do |file|
         opts.push('--js');
@@ -27,6 +37,6 @@ file 'clion.min.js' => [*SRC_FILES] do |t|
     sh 'closure', '--jscomp_off', 'internetExplorerChecks',
         '--js_output_file', t.name,
         *opts;
-    sh 'node', '-e', 'console.log("Clion versin: %j", require("./clion.min.js").Clion.version)';
+    sh 'node', '-e', 'require("./dist/clion.min.js"); console.log("Clion versin: %j", Clion.version)';
 end
 
