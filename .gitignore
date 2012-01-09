@@ -1,3 +1,4 @@
 *~
 *.swp
 *.min.js
+node_modules

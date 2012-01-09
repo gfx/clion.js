@@ -25,6 +25,17 @@ COMPONENTS
 * Virtual Machine
 * Object Space
 
+INSTALL
+==================================================
+
+For testing, you can install all the deps in `node_modules/` by:
+
+    npm install
+
+And then type the following command:
+
+    mocha
+
 SEE ALSO
 ==================================================
 

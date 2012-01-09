@@ -13,6 +13,11 @@ sub sh {
     say "@_";
     system(@_) == 0 or die;
 }
+
+task test => [ 'clion.min.js' ] => sub {
+    sh 'mocha';
+};
+
 task clean => [ ] => sub {
     unlink 'clion.min.js';
 };

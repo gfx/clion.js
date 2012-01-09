@@ -1,2 +1,7 @@
 // support for require("..") in tests
-module.exports = require('./lib/clion').Clion;
+try {
+    module.exports = require('./clion.min.js').Clion;
+}
+catch(e) {
+    module.exports = require('./lib/clion').Clion;
+}
