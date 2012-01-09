@@ -6,4 +6,3 @@ class HelloWorld {
         System.Console.WriteLine("result: " + result);
     }
 }
-

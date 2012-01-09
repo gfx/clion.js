@@ -10,7 +10,7 @@ task :gen     => [ 'lib/clion/meta.js' ];
 
 
 desc 'runs the tests';
-task :test => [ :default ] do 
+task :test => [ ] do 
     sh 'mocha';
 end
 
