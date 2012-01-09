@@ -29,7 +29,7 @@ a TableSchema has: name, fields, typemap of fields
 
 schema.name    :String
 schema.fields  :Array
-schema.type_of :HashMap
+schema.field_type :HashMap
 
 =cut
 
@@ -162,7 +162,7 @@ my %schema_of;
         elsif(m{MONO_MT_ (\w+), \s+ \/\* \s+ "(\w+)"}xms) {
             my($type, $name) = ($1, $2);
             push $c->{fields}, $name;
-            $c->{field_of}{$name} = 'MetaType.' . $type;
+            $c->{field_type_of}{$name} = 'MetaType.' . $type;
         }
     }
 }
@@ -191,14 +191,21 @@ foreach my $pair(@table_defs) {
     my($sym, $name) = @{$pair};
     my $schema_name = $description{$idx++} or die "no description entry for $sym";
     my $schema = $schema_of{$schema_name}  or die "no schema of $schema_name";
-    say ' ' x 4, '{';
+    say ' ' x 4, '{ // ', $sym;
     {
         say ' ' x 8, sprintf 'name: "%s",', $name;
 
+        # fields
         say ' ' x 8, 'fields: [';
         foreach my $field(@{ $schema->{fields} }) {
-            say ' ' x 12, sprintf '["%s", %s],',
-                $field, $schema->{field_of}{$field};
+            say ' ' x 12, sprintf '"%s",', $field;
+        }
+        say ' ' x 8., '],';
+
+        # field_size
+        say ' ' x 8, 'field_type: [';
+        foreach my $field(@{ $schema->{fields} }) {
+            say ' ' x 12, sprintf '%s,', $schema->{field_type_of}{$field};
         }
         say ' ' x 8., '],';
     }
@@ -208,4 +215,5 @@ say ']; // end of TableSchema';
 print <<'FOOT';
 exports.TableSchema = TableSchema;
 exports.MetaType    = MetaType;
+exports.C           = C;
 FOOT
