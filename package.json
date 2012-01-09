@@ -1,0 +1,17 @@
+{
+    "name": "clion",
+    "description" : "ECMA-335/CLI on JavaScript",
+    "version": "1",
+    "author": "Fuji Goro (gfx) <gfuji at cpan.org>",
+    "contributors" : {},
+    "dependencies" : {},
+    "devDependencies": {
+        "mocha" : "*",
+        "should" : "*"
+    },
+    "keywords": [],
+    "main": "index",
+    "repository": "git://github.com/gfx/clion.js",
+    "engines": { "node": ">= 0.4.0" }
+}
+
