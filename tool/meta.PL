@@ -159,7 +159,7 @@ my %schema_of;
                 field_of => {},
             };
         }
-        elsif(m{MONO_MT_ (\w+), \s+ \/\* \s+ "(\w+)"}xms) {
+        elsif(m{MONO_MT_ (\w+), \s+ \/\* \s+ "([^\"]*)"}xms) {
             my($type, $name) = ($1, $2);
             push $c->{fields}, $name;
             $c->{field_type_of}{$name} = 'MetaType.' . $type;
