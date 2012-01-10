@@ -8,16 +8,15 @@
         <script>
             $(function() {
                 $.get('../example/hello.exe', function(view) {
-                    // var cimg = new Clion.Image(view);
-                    console.log( view.getString(2) );
-                    console.log( view.getString(2) );
+                    var cimg = new Clion.Image(view);
+                    $('#content').text(cimg.toString());
                 }, 'dataview' );
             });
         </script>
     </head>
     <body>
         <h1>Demo</h1>
-        <div id="content">Hello, world!</div>
+        <pre id="content">Hello, world!</pre>
     </body>
 </html>
 
