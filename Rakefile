@@ -1,6 +1,13 @@
 #!/usr/bin/env perl
 require 'rake/clean';
 
+if(ENV['NODE_PATH'])
+    ENV['NODE_PATH'] = './node_modules:' + ENV['NODE_PATH'];
+else
+    ENV['NODE_PATH'] = './node_modules';
+end
+
+ENV['PATH'] = './node_modules/mocha/bin:' + ENV['PATH'];
 
 CLEAN.include('dist');
 
@@ -16,20 +23,27 @@ ENV['PATH'] = File.join( node_modules, 'mocha/bin' ) + ':' + ENV['PATH'];
 SRC_FILES = Dir.glob("lib/**/*.js");
 
 task :default => [ 'dist/clion.min.js' ];
+
+desc 'generate clion/meta.js from mono source code tree';
 task :gen     => [ 'lib/clion/meta.js' ];
 
+desc 'install prerequisite modules';
+task :init => [ ] do
+    sh 'npm', 'install';
+    sh 'brew', 'install', 'closure-compiler';
+end
 
 desc 'runs the tests';
-task :test => [ ] do 
+task :test => [ ] do
     sh 'mocha';
 end
 desc 'runs the tests in verbose';
-task :vtest => [ ] do 
+task :vtest => [ ] do
     sh 'mocha', '--reporter', 'spec';
 end
 
 desc 'installs dependencies';
-task :installdeps => [ ] do 
+task :installdeps => [ ] do
     sh 'npm', 'install';
 end
 
