@@ -25,16 +25,20 @@ COMPONENTS
 * Virtual Machine
 * Object Space
 
-INSTALL
+BUILD
 ==================================================
 
-For testing, you can install all the deps in `node_modules/` by:
+For developing, you need to install several node modules and google closure-compiler.
 
-    npm install
+    rake intit
 
-And then type the following command:
+And then type the following command, so that `dist/clion.js` are created:
 
-    mocha
+    rake
+
+For testing,  you can test it by rake:
+
+    rake test # or rake vtest for more information
 
 SEE ALSO
 ==================================================
