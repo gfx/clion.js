@@ -55,7 +55,7 @@ var TABLES = {
     },
 };
 describe("Clion.Image", function() {
-    var img = new Clion.Image(exe);
+    var img = Clion.Image.create_from_file(exe);
 
     describe("guid", function() {
         it("exists", function() {
@@ -63,16 +63,7 @@ describe("Clion.Image", function() {
         });
 
         it("is valid", function() {
-            img.guid.should.equal(HELLO_EXE_GUID);
-        });
-    });
-    describe("guid", function() {
-        it("exists", function() {
-            img.guid.should.exist;
-        });
-
-        it("is valid", function() {
-            img.guid.should.equal(HELLO_EXE_GUID);
+            img.guid().should.equal(HELLO_EXE_GUID);
         });
     });
     describe("version", function() {

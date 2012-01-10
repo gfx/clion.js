@@ -3,6 +3,6 @@
 
 var Clion = require("..");
 
-var img = new Clion.Image("test/r/hello.exe");
+var img = Clion.Image.create_from_file("test/r/hello.exe");
 
 console.log(img);

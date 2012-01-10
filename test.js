@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 "use strict";
 
-var Clion = require('./');
+var Clion     = require('./');
 
-var file = process.argv[2];
-var img = new Clion.Image(file);
+var file = process.argv[2] || '/dev/stdin';
+
+var img = Clion.Image.create_from_file(file);
 
 img.dump();

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Demo</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script src="../dist/clion.js"></script>
+        <script src="../node_modules/jDataView/src/jdataview.js"></script>
+        <script>
+            $(function() {
+                $.get('../example/hello.exe', function(view) {
+                    // var cimg = new Clion.Image(view);
+                    console.log( view.getString(2) );
+                    console.log( view.getString(2) );
+                }, 'dataview' );
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Demo</h1>
+        <div id="content">Hello, world!</div>
+    </body>
+</html>
+

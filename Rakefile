@@ -5,7 +5,7 @@ require 'rake/clean';
 CLEAN.include('dist');
 
 node_modules = File.join( File.dirname(__FILE__), 'node_modules' );
-
+p node_modules; 
 if(ENV['NODE_PATH'])
     ENV['NODE_PATH'] = node_modules + ':' + ENV['NODE_PATH'];
 else
