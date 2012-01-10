@@ -7,9 +7,6 @@ SYNOPSIS
     // load Clion.JS in node.js
     var Clion = require('Clion').Clion;
 
-    var c = new Clion("hello.exe");
-    c.run();
-
 DESCRIPTION
 ==================================================
 Clion.JS is a JavaScript implementation of ECMA-335 specification

@@ -1,18 +1,9 @@
 #!/usr/bin/env perl
 require 'rake/clean';
 
-if(ENV['NODE_PATH'])
-    ENV['NODE_PATH'] = './node_modules:' + ENV['NODE_PATH'];
-else
-    ENV['NODE_PATH'] = './node_modules';
-end
-
-ENV['PATH'] = './node_modules/mocha/bin:' + ENV['PATH'];
-
 CLEAN.include('dist');
 
 node_modules = File.join( File.dirname(__FILE__), 'node_modules' );
-p node_modules; 
 if(ENV['NODE_PATH'])
     ENV['NODE_PATH'] = node_modules + ':' + ENV['NODE_PATH'];
 else
