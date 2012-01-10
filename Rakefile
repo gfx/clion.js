@@ -4,6 +4,15 @@ require 'rake/clean';
 
 CLEAN.include('dist');
 
+node_modules = File.join( File.dirname(__FILE__), 'node_modules' );
+
+if(ENV['NODE_PATH'])
+    ENV['NODE_PATH'] = node_modules + ':' + ENV['NODE_PATH'];
+else
+    ENV['NODE_PATH'] = node_modules;
+end
+ENV['PATH'] = File.join( node_modules, 'mocha/bin' ) + ':' + ENV['PATH'];
+
 SRC_FILES = Dir.glob("lib/**/*.js");
 
 task :default => [ 'dist/clion.min.js' ];
@@ -30,12 +39,19 @@ file 'lib/clion/meta.js' => [ 'tool/meta.PL' ] do |t|
     sh 'tool/meta.PL > ' + t.name;
 end
 
-file 'dist/clion.js' => [ *SRC_FILES ] do |t|
+directory 'blib';
+file 'dist/clion.js' => [ 'blib', *SRC_FILES ] do |t|
+    src = [ 'node_modules/jDataView/src/jdataview.js', *SRC_FILES ];
+    
+    src.each do |file|
+        cp file, 'blib';
+    end
+
     sh './node_modules/browserbuild/bin/browserbuild',
         '--global', 'Clion',
         '--filename', 'clion.js',
         '--main', 'clion.js',
-        'lib'
+        'blib'
     ;
 end
 

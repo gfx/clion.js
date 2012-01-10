@@ -1,6 +1,7 @@
 *~
 *.swp
 *.min.js
-node_modules
+node_modules/
 dist/
-ph
+blib/
+ph/
