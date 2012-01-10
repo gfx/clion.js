@@ -14,6 +14,10 @@ desc 'runs the tests';
 task :test => [ ] do 
     sh 'mocha';
 end
+desc 'runs the tests in verbose';
+task :vtest => [ ] do 
+    sh 'mocha', '--reporter', 'spec';
+end
 
 desc 'installs dependencies';
 task :installdeps => [ ] do 
