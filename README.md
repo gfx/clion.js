@@ -1,6 +1,8 @@
 Clion.JS - ECMA-335 virtual machine in JavaScript
 ==================================================
 
+THIS SOFTWARE DOES NOT WORK YET!!
+
 SYNOPSIS
 =================================================
 
