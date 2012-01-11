@@ -8,7 +8,10 @@
         <script>
             $(function() {
                 $.get('../example/hello.exe', function(view) {
+                    var t0   = Date.now();
                     var cimg = new Clion.Image(view);
+                    var t1   = Date.now();
+                    $('#elapsed').text(t1 - t0);
                     $('#content').text(cimg.toString());
                 }, 'dataview' );
             });
@@ -16,6 +19,7 @@
     </head>
     <body>
         <h1>Demo</h1>
+        <p id="elapsed">(elapsed)</p>
         <pre id="content">Hello, world!</pre>
     </body>
 </html>
