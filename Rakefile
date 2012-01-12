@@ -2,6 +2,7 @@
 require 'rake/clean';
 
 CLEAN.include('dist');
+CLEAN.include('blib');
 
 node_modules = File.join( File.dirname(__FILE__), 'node_modules' );
 if(ENV['NODE_PATH'])
@@ -46,7 +47,7 @@ end
 
 directory 'blib';
 file 'dist/clion.js' => [ 'blib', *SRC_FILES ] do |t|
-    src = [ 'node_modules/jDataView/src/jdataview.js', *SRC_FILES ];
+    src = [ *SRC_FILES ];
     
     src.each do |file|
         cp file, 'blib';
@@ -67,7 +68,9 @@ file 'dist/clion.min.js' => [ 'dist/clion.js' ] do |t|
         opts.push(file);
     end
 
-    sh 'closure', '--jscomp_off', 'internetExplorerChecks',
+    sh 'closure',
+        #'--compilation_level', 'ADVANCED_OPTIMIZATIONS',
+        '--jscomp_off', 'internetExplorerChecks',
         '--js_output_file', t.name,
         *opts;
     sh 'node', '-e', 'require("./dist/clion.min.js"); console.log("Clion versin: %j", Clion.version)';
