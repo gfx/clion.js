@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
-var Clion     = require('./');
+var Clion = require('..');
 
 var file = process.argv[2] || '/dev/stdin';
 
