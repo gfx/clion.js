@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 "use strict";
-
+var util  = require('util');
 var Clion = require("..");
 var exe = __dirname + "/r/hello.exe";
 
@@ -11,6 +11,7 @@ var MODULE_NAME    = "hello.exe";
 var VERSION_STR    = "v2.0.50727";
 var VERSION_MAJOR  = 1;
 var VERSION_MINOR  = 1;
+var ENTRY_POINT    = 0x02058;
 
 var TABLES = {
     Module: {
@@ -129,6 +130,61 @@ var TABLES = {
 };
 describe("Clion.Image", function() {
     var img = Clion.Image.create_from_file(exe);
+    //console.log(util.inspect(img, false, 10));
+
+    describe('image_info', function() {
+        it("header.coff", function() {
+            var coff = img.image_info.header.coff;
+            coff.machine.should.equal(0x014c);
+            coff.sections.should.equal(3);
+            coff.time.should.equal(0x4f0a6102);
+            coff.symptr.should.equal(0x0);
+            coff.symcount.should.equal(0x0);
+            coff.opt_header_size.should.equal(0x00e0);
+            coff.oattributes.should.equal(0x0102);
+        });
+        it("header.pe", function() {
+            var pe = img.image_info.header.pe;
+            pe.magic.should.equal(0x010b);
+            pe.major.should.equal(0x08);
+            pe.minor.should.equal(0x00);
+            pe.code_size.should.equal(0x0400);
+            pe.data_size.should.equal(0x0600);
+            pe.uninit_data_size.should.equal(0x0);
+            pe.rva_entry_point.should.equal(0x022ee);
+            pe.rva_code_base.should.equal(0x02000);
+            pe.rva_data_base.should.equal(0x04000);
+        });
+        it("header.nt", function() {
+            var nt = img.image_info.header.nt;
+            nt.image_base.should.equal(    0x400000);
+            nt.section_align.should.equal( 0x002000);
+            nt.file_alignment.should.equal(0x000200);
+            nt.os_major.should.equal(0x04);
+            nt.os_minor.should.equal(0x00);
+            nt.user_major.should.equal(0x00);
+            nt.user_minor.should.equal(0x00);
+            nt.subsys_major.should.equal(0x04);
+            nt.subsys_minor.should.equal(0x00);
+            nt.image_size.should.equal(0x08000);
+            nt.header_size.should.equal(0x0200);
+            nt.checksum.should.equal(0x0);
+            nt.subsys_required.should.equal(0x03);
+            nt.stack_reserve.should.equal(0x00100000);
+            nt.stack_commit.should.equal( 0x00001000);
+            nt.heap_reserve.should.equal( 0x00100000);
+            nt.heap_commit.should.equal(  0x00001000);
+            nt.loader_flags.should.equal(0x0);
+            nt.data_dir_count.should.equal(0x10);
+        });
+        it("cli_header", function() {
+            var h = img.image_info.cli_header;
+            h.size.should.equal(72);
+            h.runtime_major.should.equal(2);
+            h.runtime_minor.should.equal(5);
+            h.entry_point.should.equal(0x06000002);
+        });
+    });
 
     describe("guid", function() {
         it("exists", function() {
