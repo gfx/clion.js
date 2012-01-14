@@ -7,4 +7,4 @@ var file = process.argv[2] || '/dev/stdin';
 
 var img = Clion.Image.create_from_file(file);
 
-img.dump();
+img.run([]);
