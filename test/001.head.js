@@ -16,42 +16,115 @@ var TABLES = {
     Module: {
         rows: 1,
         size: 10,
-        base: 0x308
+        base: 0x308,
+        entries: [
+            {
+                'Name': 'hello.exe',
+                'Generation': 0,
+            },
+        ]
     },
     TypeRef: {
         rows: 3,
         size: 6,
         base: 0x312,
+        entries: [
+            {
+                'Name': 'Object',
+                'Namespace': 'System',
+            },
+            {
+                'Name': 'Console',
+                'Namespace': 'System',
+            },
+            {
+                'Name': 'RuntimeCompatibilityAttribute',
+                'Namespace': 'System.Runtime.CompilerServices',
+            },
+        ]
     },
     TypeDef: {
         rows: 2,
         size: 14,
         base: 0x324,
+        entries: [
+            {
+                'Name': '<Module>',
+                'Namespace': '',
+            },
+            {
+                'Name': 'HelloWorld',
+                'Namespace': '',
+            },
+        ]
     },
     Method: {
         rows: 2,
         size: 14,
         base: 0x340,
+        entries: [
+            {
+                'Name': '.ctor',
+            },
+            {
+                'Name': 'Main',
+            },
+        ]
     },
     MemberRef: {
         rows: 3,
         size: 6,
         base: 0x35c,
+        entries: [
+            {
+                'Name': '.ctor',
+            },
+            {
+                'Name': 'WriteLine',
+            },
+            {
+                'Name': '.ctor',
+            },
+        ]
     },
     CustomAttribute: {
         rows: 1,
         size: 6,
         base: 0x36e,
+        entries: [ {} ],
     },
     Assembly: {
         rows: 1,
         size: 22,
         base: 0x374,
+        entries: [
+            {
+                'Name': 'hello',
+                'Major': 0,
+                'Minor': 0,
+                'BuildNumber': 0,
+                'RevisionNumber': 0,
+                'HashId': 0x08004,
+                'Flags': 0x00,
+                'Culture': '',
+            },
+        ]
     },
     AssemblyRef: {
         rows: 1,
         size: 20,
         base: 0x38a,
+        entries: [
+            {
+                'Name': 'mscorlib',
+                'Major': 2,
+                'Minor': 0,
+                'BuildNumber': 0,
+                'RevisionNumber': 0,
+                'Flags': 0x00,
+                'Culture': '',
+            },
+        ]
     },
 };
 describe("Clion.Image", function() {
@@ -129,6 +202,19 @@ describe("Clion.Image", function() {
                         got.base.should.equal( expect.base );
                     });
                 });
+                describe('entries of ' + got.name, function() {
+                    var i, entries, x, g, key;
+                    entries = img.get_table_entries(got);
+                    for(i = 0; i < expect.entries.length; i++) {
+                        g = entries[i];
+                        x = expect.entries[i];
+                        for(key in  x) {
+                            it('.' + key, function() {
+                                g[key].should.equal( x[key] );
+                            });
+                        }
+                    }
+                });
             }
             else {
                 describe( 'table#' + idx, function() {
@@ -138,5 +224,6 @@ describe("Clion.Image", function() {
                 });
             }
         });
+
     });
 });
