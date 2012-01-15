@@ -16,6 +16,7 @@ BEGIN {
 
     require 'mono/metadata/metadata.ph';
     require 'mono/metadata/tabledefs.ph';
+    require 'mono/metadata/tokentype.ph';
 }
 
 
@@ -74,7 +75,9 @@ GEN
 
     foreach my $pair(@constants) {
         my($name, $value) = @{$pair};
-        say sprintf '    %-*s: %s,', $max_len, $name, $value;
+        my $hex = sprintf '%x', $value;
+        say sprintf '    %-*s: 0x%x, // %s', $max_len, $name,
+            $value, $value;
     }
 }
 print <<'GEN';
@@ -124,7 +127,7 @@ make_enum('MetaType', 1, qw(
     RS_IDX
 ));
 
-# Table Definitions
+# parse Table Definitions
 my @table_defs;
 {
     open my $fh, '<', $mono_tabledef;

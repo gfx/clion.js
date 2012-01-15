@@ -17,7 +17,7 @@ SRC_FILES = Dir.glob("lib/**/*.js");
 task :default => [ 'dist/clion.min.js' ];
 
 desc 'generate clion/meta.js from mono source code tree';
-task :gen     => [ 'lib/clion/meta.js' ];
+task :gen     => [ 'lib/meta.js' ];
 
 desc 'install prerequisite modules';
 task :init => [ ] do
@@ -42,7 +42,7 @@ end
 
 directory 'dist';
 
-file 'lib/clion/meta.js' => [ 'tool/meta.PL' ] do |t|
+file 'lib/meta.js' => [ 'tool/meta.PL' ] do |t|
     sh 'tool/meta.PL > ' + t.name;
 end
 
