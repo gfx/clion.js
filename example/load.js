@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 "use strict";
 
-var util  = require('util');
-var Clion = require("..");
+var Clion = require('..');
 
-var img = Clion.Image.create_from_file("test/r/hello.exe");
+var file = process.argv[2] || 'example/hello.exe' || '/dev/stdin';
 
-console.log( util.inspect(img, null, 10) );
+var img = Clion.Image.create_from_file(file);
+
+console.log( img );

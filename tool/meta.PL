@@ -76,7 +76,7 @@ GEN
     foreach my $pair(@constants) {
         my($name, $value) = @{$pair};
         my $hex = sprintf '%x', $value;
-        say sprintf '    %-*s: 0x%x, // %s', $max_len, $name,
+        say sprintf '  %-*s: 0x%x, // %s', $max_len, $name,
             $value, $value;
     }
 }
@@ -96,7 +96,7 @@ GEN
     my $max_len = max map { length } @syms;
     my $value = $init;
     foreach my $sym(@syms) {
-        say sprintf '    %-*s: %d,', $max_len, $sym, $value++;
+        say sprintf '  %-*s: %d,', $max_len, $sym, $value++;
     }
     printf <<'GEN', $name;
 }; // end of enum %s
@@ -196,25 +196,25 @@ foreach my $pair(@table_defs) {
     my($sym, $name) = @{$pair};
     my $schema_name = $description{$idx++} or die "no description entry for $sym";
     my $schema = $schema_of{$schema_name}  or die "no schema of $schema_name";
-    say ' ' x 4, '{ // ', $sym;
+    say ' ' x 2, '{ // ', $sym;
     {
-        say ' ' x 8, sprintf 'name: "%s",', $name;
+        say ' ' x 4, sprintf 'name: "%s",', $name;
 
         # fields
-        say ' ' x 8, 'fields: [';
+        say ' ' x 4, 'fields: [';
         foreach my $field(@{ $schema->{fields} }) {
-            say ' ' x 12, sprintf '"%s",', $field;
+            say ' ' x 6, sprintf '"%s",', $field;
         }
-        say ' ' x 8., '],';
+        say ' ' x 4., '],';
 
         # field_size
-        say ' ' x 8, 'field_type: [';
+        say ' ' x 4, 'field_type: [';
         foreach my $field(@{ $schema->{fields} }) {
-            say ' ' x 12, sprintf '%s,', $schema->{field_type_of}{$field};
+            say ' ' x 6, sprintf '%s,', $schema->{field_type_of}{$field};
         }
-        say ' ' x 8., '],';
+        say ' ' x 4., '],';
     }
-    say ' ' x 4, '},';
+    say ' ' x 2, '},';
 }
 say ']; // end of TableSchema';
 print <<'FOOT';

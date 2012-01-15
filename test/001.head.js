@@ -196,7 +196,7 @@ describe("Clion.Image", function() {
         });
 
         it("is valid", function() {
-            img.guid().should.equal(HELLO_EXE_GUID);
+            img.guid.should.equal(HELLO_EXE_GUID);
         });
     });
     describe("version", function() {
