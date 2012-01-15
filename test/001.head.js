@@ -4,6 +4,8 @@ var util  = require('util');
 var Clion = require("..");
 var exe = __dirname + "/r/hello.exe";
 
+var VERBOSE = process.env['CLION_TEST_VERBOSE'] ? true : false;
+
 // meta data from test/r/hello.exe by monodis(1) and pedump(1)
 var HELLO_EXE_GUID = "258E984D-F652-4AA4-8833-43BDF34A1CDE";
 var ASSEMBLY_NAME  = "hello";
@@ -52,10 +54,12 @@ var TABLES = {
             {
                 'Name': '<Module>',
                 'Namespace': '',
+                'Flags': 0x0,
             },
             {
                 'Name': 'HelloWorld',
                 'Namespace': '',
+                'Flags': 0x100000,
             },
         ]
     },
@@ -241,7 +245,7 @@ describe("Clion.Image", function() {
         });
 
         img.tables.forEach(function(got, idx)  {
-            var expect = TABLES[got.name];
+            var expect = TABLES[got.name], entries;
             if(!expect) {
                 expect = { rows: 0 };
             }
@@ -259,7 +263,7 @@ describe("Clion.Image", function() {
                     });
                 });
                 describe('entries of ' + got.name, function() {
-                    var i, entries, x, g, key;
+                    var entries, i, x, g, key;
                     entries = img.get_table_entries(got);
                     for(i = 0; i < expect.entries.length; i++) {
                         g = entries[i];
@@ -269,6 +273,13 @@ describe("Clion.Image", function() {
                                 g[key].should.equal( x[key] );
                             });
                         }
+                    }
+                    if(VERBOSE) {
+                        after(function() {
+                            console.log('### %s %s',
+                                        got.name,
+                                        util.inspect(entries, false, 10));
+                        });
                     }
                 });
             }

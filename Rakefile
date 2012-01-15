@@ -31,6 +31,7 @@ task :test => [ ] do
 end
 desc 'runs the tests in verbose';
 task :vtest => [ ] do
+    ENV['CLION_TEST_VERBOSE'] = '1';
     sh 'mocha', '--reporter', 'spec';
 end
 
