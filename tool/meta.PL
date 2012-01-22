@@ -108,6 +108,11 @@ package C::tabledefs {
     ::h2js(__PACKAGE__, 'tabledefs.h', qr/^[A-Z]/);
 }
 
+package C::cli_coff {
+    require 'mono/metadata/cil-coff.ph';
+    ::h2js(__PACKAGE__, 'cil-coff.h', qr/^[A-Z]/);
+}
+
 package C::wrapper_types {
     open my $fh, '<', $mono_wrapper_types;
 
