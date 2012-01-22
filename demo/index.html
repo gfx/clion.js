@@ -89,7 +89,7 @@
             $.get('../example/' + name + '.exe', function(view) {
                 var img = Clion.load_from_view(view);
                 var data = {
-                    name: img.module_name,
+                    module_name: img.module_name,
                     guid: img.guid,
                 };
                 img.tables.forEach(function(t) {
@@ -101,6 +101,9 @@
             }, 'dataview' );
             $.get('../example/' + name + '.cs', function(content) {
                 $('#source').text(content);
+            });
+            $.get('../example/' + name + '.cil', function(content) {
+                $('#cil-source').text(content);
             });
         };
 
@@ -137,6 +140,7 @@
               <h2>Output and source code</h2>
               <pre id="stdout"></pre>
               <pre id="source"></pre>
+              <pre id="cil-source"></pre>
           </div>
           <div class="span7" id="clion-side">
               <h3>Metadata</h3>
