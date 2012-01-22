@@ -9,6 +9,13 @@ use Mouse ();
 
 use FindBin qw($Bin);
 use lib "$Bin/../ph";
+
+
+my $mono = <~/repo/mono>;
+my $mono_metadata      = "$mono/mono/metadata/metadata.c";
+my $mono_wrapper_types = "$mono/mono/metadata/wrapper-types.h";
+my $mono_tabledef      = "$mono/mono/cil/tables.def";
+
 BEGIN {
     $INC{'stdint.ph'}  = __FILE__;
     $INC{'stdio.ph'}   = __FILE__;
@@ -55,12 +62,6 @@ sub h2js {
     }
 }
 
-
-my $mono = <~/repo/mono>;
-my $mono_metadata = "$mono/mono/metadata/metadata.c";
-my $mono_tabledef = "$mono/mono/cil/tables.def";
-my $mono_blob     = "$mono/mono/metadata/blob.h"; # MONO_TYPE_* and MONO_TABLE_*
-
 =for comment
 
 a TableSchema has: name, fields, typemap of fields
@@ -103,6 +104,21 @@ package C::class_internals {
 package C::tabledefs {
     require 'mono/metadata/tabledefs.ph';
     ::h2js(__PACKAGE__, 'tabledefs.h', qr/^[A-Z]/);
+}
+
+package C::wrapper_types {
+    open my $fh, '<', $mono_wrapper_types;
+
+    my $C = Mouse::Meta::Class->initialize(__PACKAGE__);
+    my $enum = 0;
+    while(<$fh>) {
+        if(/\A WRAPPER\( (\w+) /xms) {
+            my $value = $enum++;
+            $C->add_method("MONO_WRAPPER_$1", sub (){ $value });
+        }
+    }
+
+    ::h2js(__PACKAGE__, 'wrapper_types.h', qr/^MONO_/);
 }
 
 print <<'GEN';
