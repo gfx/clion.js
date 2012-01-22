@@ -9,6 +9,10 @@ SYNOPSIS
     // load Clion.JS in node.js
     var Clion = require('Clion').Clion;
 
+    var image = Clion.load_from_file(file);
+
+    image.run(args...);
+
 DESCRIPTION
 ==================================================
 Clion.JS is a JavaScript implementation of ECMA-335 specification
@@ -29,7 +33,7 @@ BUILD
 
 For developing, you need to install several node modules and google closure-compiler.
 
-    rake intit
+    rake init
 
 And then type the following command, so that `dist/clion.js` are created:
 
@@ -38,6 +42,15 @@ And then type the following command, so that `dist/clion.js` are created:
 For testing,  you can test it by rake:
 
     rake test # or rake vtest for more information
+
+DEMO
+==================================================
+
+You can see a demo application with Plack.
+
+    plackup -MPlack::App::Directory -e 'Plack::App::Directory->new->to_app
+
+And open the following URL in the browser: http://localhost:5000/demo/index.html
 
 SEE ALSO
 ==================================================
