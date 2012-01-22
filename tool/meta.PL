@@ -26,6 +26,8 @@ BEGIN {
     $INC{'glib.ph'}    = __FILE__;
     $INC{'config.ph'}  = __FILE__; # XXX
 }
+
+my %seen;
 sub h2js {
     my($pkg, $annotation, $prefix) = @_;
     my $C = Mouse::Meta::Class->initialize($pkg);
@@ -41,7 +43,7 @@ sub h2js {
 
     my @constants =  grep { defined $_->[1] }
                      map  { [ $_, $get_value->($_) ] }
-                     grep { /$prefix/ } $C->get_method_list();
+                     grep { /$prefix/ && !$seen{$_}++ } $C->get_method_list();
 
     $_->[0] =~ s/^MONO_// for @constants;
 
