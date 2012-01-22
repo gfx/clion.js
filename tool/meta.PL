@@ -4,6 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use autodie;
 use List::Util qw(max);
+use XML::LibXML;
 use Data::Dumper;
 use Mouse ();
 
@@ -15,6 +16,7 @@ my $mono = <~/repo/mono>;
 my $mono_metadata      = "$mono/mono/metadata/metadata.c";
 my $mono_wrapper_types = "$mono/mono/metadata/wrapper-types.h";
 my $mono_tabledef      = "$mono/mono/cil/tables.def";
+my $mono_opcodes       = "$mono/mono/cil/cil-opcodes.xml";
 
 BEGIN {
     $INC{'stdint.ph'}  = __FILE__;
@@ -45,7 +47,7 @@ sub h2js {
                      map  { [ $_, $get_value->($_) ] }
                      grep { /$prefix/ && !$seen{$_}++ } $C->get_method_list();
 
-    $_->[0] =~ s/^MONO_// for @constants;
+    $_->[0] =~ s/\A (?:MONO_ | Mono) //xms for @constants;
 
     my $max_len = max map { length $_->[0] } @constants;
     @constants = sort { # sort by group
@@ -128,8 +130,32 @@ package C::wrapper_types {
     ::h2js(__PACKAGE__, 'wrapper_types.h', qr/^MONO_/);
 }
 
+my @opcodes;
+package C::opcodes {
+    require 'mono/metadata/opcodes.ph';
+
+    my $xml = XML::LibXML->load_xml(location => $mono_opcodes);
+    my $C = Mouse::Meta::Class->initialize(__PACKAGE__);
+    foreach my $o($xml->getElementsByTagName('opcode')) {
+        my $name  = $o->getAttribute('name');
+        my $uname = ( uc($name) =~ s/\W/_/xmsgr );
+        my $id    = hex $o->getAttribute('o2');
+        $C->add_method("MONO_CEE_$uname", sub (){ $id });
+
+        push @opcodes, {
+            name   => $name,
+            id     => $id,
+            input  => $o->getAttribute('input'),
+            output => $o->getAttribute('output'),
+            args   => $o->getAttribute('args'),
+            flow   => $o->getAttribute('flow'),
+        };
+    }
+    ::h2js(__PACKAGE__, 'opcodes.h', qr/^(?:MONO_|Mono)/);
+}
+
 print <<'GEN';
-}; // constants
+}; // end of constants
 
 GEN
 
@@ -265,8 +291,27 @@ foreach my $pair(@table_defs) {
     say ' ' x 2, '},';
 }
 say ']; // end of TableSchema';
+
+say '/** @const {Array.<Object>} */';
+say 'var Opcodes = [';
+{
+    foreach my $o(@opcodes) {
+        say ' ' x 2, sprintf '{ // 0x%02X (%s -> %s)',
+            $o->{id}, $o->{input}, $o->{output};
+
+        my $flow = (uc $o->{flow} =~ s/\W/_/xmsgr);
+        say ' ' x 4, sprintf 'name    : "%s",', $o->{name};
+        say ' ' x 4, sprintf 'argument: C.%s,', $o->{args};
+        say ' ' x 4, sprintf 'flow    : C.FLOW_%s,', $flow;
+        say ' ' x 2, '},';
+    }
+}
+say ']; // end of Opcodes';
+
 print <<'FOOT';
+
 exports.TableSchema = TableSchema;
 exports.MetaType    = MetaType;
 exports.C           = C;
+exports.Opcodes     = Opcodes;
 FOOT
