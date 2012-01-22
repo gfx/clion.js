@@ -7,12 +7,15 @@
         <script src="../node_modules/jDataView/src/jdataview.js"></script>
         <script>
             $(function() {
+                Clion.console.write_line = function(str) {
+                    $('#content').text( $('#content').text() + str + "\n" );
+                };
                 $.get('../example/hello.exe', function(view) {
-                    var t0   = Date.now();
-                    var cimg = new Clion.Image(view);
-                    var t1   = Date.now();
-                    $('#elapsed').text(t1 - t0);
-                    $('#content').text(cimg.toString());
+                    var t0  = Date.now();
+                    var img = Clion.load_from_view(view);
+                    var t1  = Date.now();
+                    $('#elapsed').text( (t1 - t0) + 'ms');
+                    img.run();
                 }, 'dataview' );
             });
         </script>
@@ -20,7 +23,7 @@
     <body>
         <h1>Demo</h1>
         <p id="elapsed">(elapsed)</p>
-        <pre id="content">Hello, world!</pre>
+        <pre id="content"></pre>
     </body>
 </html>
 
