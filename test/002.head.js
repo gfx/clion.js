@@ -133,7 +133,7 @@ var TABLES = {
     },
 };
 describe("Clion.Image", function() {
-    var img = Clion.Image.create_from_file(exe);
+    var img = Clion.load_from_file(exe);
     //console.log(util.inspect(img, false, 10));
 
     describe('image_info', function() {
