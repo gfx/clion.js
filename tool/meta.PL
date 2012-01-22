@@ -17,9 +17,9 @@ BEGIN {
     $INC{'time.ph'}    = __FILE__;
     $INC{'pthread.ph'} = __FILE__;
     $INC{'glib.ph'}    = __FILE__;
-    $INC{'config.ph'}  = __FILE__;
+    $INC{'config.ph'}  = __FILE__; # XXX
 }
-sub ph2js {
+sub h2js {
     my($pkg, $annotation, $prefix) = @_;
     my $C = Mouse::Meta::Class->initialize($pkg);
 
@@ -32,11 +32,9 @@ sub ph2js {
         return undef;
     };
 
-    my @names     = $C->get_method_list();
-    @names = grep { /$prefix/ } @names if defined $prefix;
-
     my @constants =  grep { defined $_->[1] }
-                     map  { [ $_, $get_value->($_) ] } @names;
+                     map  { [ $_, $get_value->($_) ] }
+                     grep { /$prefix/ } $C->get_method_list();
 
     $_->[0] =~ s/^MONO_// for @constants;
 
@@ -89,23 +87,22 @@ GEN
 
 package C::metadata {
     require 'mono/metadata/metadata.ph';
-    ::ph2js(__PACKAGE__, 'metadata.h', qr/^MONO_/);
+    ::h2js(__PACKAGE__, 'metadata.h', qr/^MONO_/);
 }
-ph2js('C::metadata', 'metadata.h', qr/^MONO_/);
 
 package C::tokentype {
     require 'mono/metadata/tokentype.ph';
-    ::ph2js(__PACKAGE__, 'tokentype.h', qr/^MONO_/);
+    ::h2js(__PACKAGE__, 'tokentype.h', qr/^MONO_/);
 }
 
 package C::class_internals {
     require 'mono/metadata/class-internals.ph';
-    ::ph2js(__PACKAGE__, 'class-internals.h', qr/^MONO_/);
+    ::h2js(__PACKAGE__, 'class-internals.h', qr/^MONO_/);
 }
 
 package C::tabledefs {
     require 'mono/metadata/tabledefs.ph';
-    ::ph2js(__PACKAGE__, 'tabledefs.h');
+    ::h2js(__PACKAGE__, 'tabledefs.h', qr/^[A-Z]/);
 }
 
 print <<'GEN';
