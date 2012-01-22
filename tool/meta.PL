@@ -10,13 +10,51 @@ use Mouse ();
 use FindBin qw($Bin);
 use lib "$Bin/../ph";
 BEGIN {
-    package C;
-    $INC{'stdint.ph'} = __FILE__;
-    $INC{'stdio.ph'}  = __FILE__;
+    $INC{'stdint.ph'}  = __FILE__;
+    $INC{'stdio.ph'}   = __FILE__;
+    $INC{'stdlib.ph'}  = __FILE__;
+    $INC{'stdarg.ph'}  = __FILE__;
+    $INC{'time.ph'}    = __FILE__;
+    $INC{'pthread.ph'} = __FILE__;
+    $INC{'glib.ph'}    = __FILE__;
+    $INC{'config.ph'}  = __FILE__;
+}
+sub ph2js {
+    my($pkg, $annotation, $prefix) = @_;
+    my $C = Mouse::Meta::Class->initialize($pkg);
 
-    require 'mono/metadata/metadata.ph';
-    require 'mono/metadata/tabledefs.ph';
-    require 'mono/metadata/tokentype.ph';
+    my $get_value = sub {
+        my($name) = @_;
+        my $f = $C->get_method($name)->body;
+        if(prototype($f) ~~ '') {
+            return scalar eval { $f->() };
+        }
+        return undef;
+    };
+
+    my @names     = $C->get_method_list();
+    @names = grep { /$prefix/ } @names if defined $prefix;
+
+    my @constants =  grep { defined $_->[1] }
+                     map  { [ $_, $get_value->($_) ] } @names;
+
+    $_->[0] =~ s/^MONO_// for @constants;
+
+    my $max_len = max map { length $_->[0] } @constants;
+    @constants = sort { # sort by group
+        my($a_group) = split /_/, $a->[0];
+        my($b_group) = split /_/, $b->[0];
+
+        $a_group cmp $b_group || $a->[1] <=> $b->[1] || $a->[0] cmp $b->[0];
+    } @constants;
+
+    say "// $annotation";
+    foreach my $pair(@constants) {
+        my($name, $value) = @{$pair};
+        my $hex = sprintf '%x', $value;
+        say sprintf '  %-*s: 0x%x, // %s', $max_len, $name,
+            $value, $value;
+    }
 }
 
 
@@ -48,38 +86,28 @@ print <<'GEN';
 /** @enum {int} */
 var C = {
 GEN
-{
-    my $C = Mouse::Meta::Class->initialize('C');
-    my $get_value = sub {
-        my($name) = @_;
-        my $f = $C->get_method($name)->body;
-        if(prototype($f) ~~ '') {
-            return scalar eval { $f->() };
-        }
-        return undef;
-    };
 
-    my @constants =  grep { defined $_->[1] }
-                     map  { [ $_, $get_value->($_) ] }
-                     grep { /\A [A-Z] [A-Z0-9_]* [A-Z0-9] \z/xms }  $C->get_method_list();
-
-    $_->[0] =~ s/^MONO_// for @constants;
-
-    my $max_len = max map { length $_->[0] } @constants;
-    @constants = sort { # sort by group
-        my($a_group) = split /_/, $a->[0];
-        my($b_group) = split /_/, $b->[0];
-
-        $a_group cmp $b_group || $a->[1] <=> $b->[1];
-    } @constants;
-
-    foreach my $pair(@constants) {
-        my($name, $value) = @{$pair};
-        my $hex = sprintf '%x', $value;
-        say sprintf '  %-*s: 0x%x, // %s', $max_len, $name,
-            $value, $value;
-    }
+package C::metadata {
+    require 'mono/metadata/metadata.ph';
+    ::ph2js(__PACKAGE__, 'metadata.h', qr/^MONO_/);
 }
+ph2js('C::metadata', 'metadata.h', qr/^MONO_/);
+
+package C::tokentype {
+    require 'mono/metadata/tokentype.ph';
+    ::ph2js(__PACKAGE__, 'tokentype.h', qr/^MONO_/);
+}
+
+package C::class_internals {
+    require 'mono/metadata/class-internals.ph';
+    ::ph2js(__PACKAGE__, 'class-internals.h', qr/^MONO_/);
+}
+
+package C::tabledefs {
+    require 'mono/metadata/tabledefs.ph';
+    ::ph2js(__PACKAGE__, 'tabledefs.h');
+}
+
 print <<'GEN';
 }; // constants
 
