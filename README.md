@@ -63,6 +63,6 @@ LICENSE AND COPYRIGHT
 ==================================================
 Copyright (c) Fuji Goro (gfx) <gfuji at cpan.org>. All rights reserved.
 
-This program is free software; you can redistribute it and/or modify it under terms of the Artistic License version 2.
+This program is free software; you can redistribute it and/or modify it under terms of the MIT License.
 
 
