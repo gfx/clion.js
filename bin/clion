@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+// vim: set filetype=javascript:
+"use strict";
+
+var Clion = require('..');
+
+var file = process.argv[2];
+if(!file) {
+    console.log("Clion.JS version %s", Clion.version);
+    process.exit(0);
+}
+console.log( process.argv.slice(3) );
+var img = Clion.load_from_file(file);
+img.run( process.argv.slice(3) );
