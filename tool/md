@@ -8,5 +8,4 @@ system 'mcs', $name;
 
 $name =~ s/\.cs$/.exe/;
 system 'monodis', $name;
-unlink $name;
 
